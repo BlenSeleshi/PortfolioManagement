@@ -16,7 +16,7 @@ def plot_closing_price(data, ticker):
 
 def calculate_daily_returns(data):
     """Calculates daily returns."""
-    data['Daily_Return'] = data['Close'].pct_change()
+    data['Daily_Return'] = data['Adj Close'].pct_change()
     logging.info("Daily returns calculated.")
     return data
 
@@ -29,6 +29,14 @@ def plot_volatility(data, window=30):
     plt.xlabel('Date')
     plt.ylabel('Volatility')
     plt.legend()
+    plt.show()
+    
+    plt.figure(figsize=(10, 6))
+    plt.hist(data['Daily_Return'], bins=30, edgecolor='black')
+    plt.title('Distribution of Daily Returns')
+    plt.xlabel('Daily Return')
+    plt.ylabel('Frequency')
+    plt.grid(True)
     plt.show()
     logging.info("Volatility plotted.")
 
