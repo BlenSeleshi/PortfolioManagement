@@ -3,3 +3,6 @@ __pycache__
 data
 logs
 data_fetch.log
+preprocess.log
+eda.log
+analysis.log
