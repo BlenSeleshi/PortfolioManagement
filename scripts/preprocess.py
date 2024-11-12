@@ -1,6 +1,7 @@
 import pandas as pd
 from statsmodels.tsa.stattools import adfuller
 import logging
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 logging.basicConfig(level=logging.INFO, filename='preprocess.log', filemode='w')
