@@ -27,7 +27,7 @@ def load_data_from_csv():
     tickers = ['TSLA', 'BND', 'SPY']
     data = {}
     for ticker in tickers:
-        df = pd.read_csv(f"{ticker}.csv", parse_dates=['Date'], index_col='Date')
+        df = pd.read_csv(f"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\{ticker}_data.csv", parse_dates=['Date'], index_col='Date')
         data[ticker] = df
     return data
 
