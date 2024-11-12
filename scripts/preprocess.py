@@ -20,6 +20,16 @@ def check_stationarity(data):
         }
         logging.info(f"{name} Stationarity Check: {results[name]}")
     return results
+def load_data_from_csv():
+    """
+    Load data from pre-saved CSV files for each ticker.
+    """
+    tickers = ['TSLA', 'BND', 'SPY']
+    data = {}
+    for ticker in tickers:
+        df = pd.read_csv(f"{ticker}.csv", parse_dates=['Date'], index_col='Date')
+        data[ticker] = df
+    return data
 
 def preprocess_data(data):
     """
