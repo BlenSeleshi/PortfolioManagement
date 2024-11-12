@@ -22,11 +22,27 @@ def check_stationarity(data):
 
 def preprocess_data(data):
     """
-    Fill missing values and calculate log returns for each asset.
+    Basic preprocessing to compute log returns and handle missing values.
     """
-    for name, df in data.items():
-        df['Log Return'] = (df['Adj Close'] / df['Adj Close'].shift(1)).apply(lambda x: pd.np.log(x))
-    return data
+    processed_data = {}
+    for ticker, df in data.items():
+        df['Log Return'] = df['Adj Close'].pct_change().apply(lambda x: np.log(1 + x))
+        df['20-Day Volatility'] = df['Log Return'].rolling(window=20).std()  # 20-day rolling volatility
+        df['50-Day Volatility'] = df['Log Return'].rolling(window=50).std()  # 50-day rolling volatility
+        df['Bollinger Upper'] = df['Adj Close'].rolling(window=20).mean() + 2 * df['20-Day Volatility']
+        df['Bollinger Lower'] = df['Adj Close'].rolling(window=20).mean() - 2 * df['20-Day Volatility']
+        df['ATR'] = df['High'].rolling(window=14).max() - df['Low'].rolling(window=14).min()
+        processed_data[ticker] = df.dropna()  # Drop any NaNs resulting from rolling calculations
+    return processed_data
+
+def compute_volatility_index(data):
+    """
+    Compute a combined volatility index from individual asset volatilities.
+    """
+    vol_index = pd.DataFrame({
+        ticker: df['20-Day Volatility'] for ticker, df in data.items()
+    }).mean(axis=1)
+    return vol_index
 
 def clean_data(data):
     """Cleans the data by handling missing values and checking data types."""
