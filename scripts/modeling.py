@@ -2,7 +2,8 @@
 
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from pmdarima import auto_arima
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
+#from pmdarima import auto_arima
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 import numpy as np
@@ -41,3 +42,9 @@ def train_lstm(data, epochs=10, batch_size=1):
     model.fit(data[:-1], data[1:], epochs=epochs, batch_size=batch_size, verbose=0)
     logging.info("LSTM Model Trained")
     return model
+# Evaluate the model's performance with MAE, RMSE, MAPE
+def evaluate_model(y_true, y_pred):
+    mae = mean_absolute_error(y_true, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+    mape = mean_absolute_percentage_error(y_true, y_pred)
+    return mae, rmse, mape

@@ -1,42 +1,40 @@
 # forecasting.py
 
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import logging
 
-logging.basicConfig(filename='forecasting.log', level=logging.INFO)
-
-def generate_forecast(model, steps):
-    """
-    Generate forecasts for the given number of steps.
-    """
-    forecast = model.forecast(steps=steps)
-    logging.info(f"Generated Forecast: {forecast}")
+def generate_forecast(model, steps, exog=None):
+    forecast = model.forecast(steps=steps, exog=exog)
     return forecast
 
-def plot_forecast(train_data, forecast, model_name, confidence_interval=None):
-    """
-    Plot the forecast alongside historical data.
-    """
-    plt.figure(figsize=(10, 5))
-    plt.plot(train_data, label='Historical')
-    plt.plot(forecast, label=f'{model_name} Forecast')
-    if confidence_interval:
-        plt.fill_between(forecast.index, confidence_interval[:, 0], confidence_interval[:, 1], color='pink', alpha=0.3)
-    plt.title(f'{model_name} Forecast vs Historical Data')
+def plot_forecast(actual, forecast, model_name):
+    plt.figure(figsize=(10,6))
+    plt.plot(actual.index, actual.values, label="Actual", color='blue')
+    plt.plot(forecast.index, forecast.values, label=f"Forecast ({model_name})", color='red')
+    plt.title(f'{model_name} Forecast vs Actual')
     plt.legend()
     plt.show()
 
-def plot_all_forecasts(train_data, arima_forecast, sarimax_forecast, lstm_forecast):
-    """
-    Plot forecasts from ARIMA, SARIMAX, and LSTM models for comparison.
-    """
-    plt.figure(figsize=(12, 6))
-    plt.plot(train_data, label='Historical')
-    plt.plot(arima_forecast, label='ARIMA Forecast', linestyle='--')
-    plt.plot(sarimax_forecast, label='SARIMAX Forecast', linestyle=':')
-    plt.plot(lstm_forecast, label='LSTM Forecast', linestyle='-.')
-    plt.title('Model Forecast Comparisons')
+def plot_all_forecasts(actual, arima_forecast, sarimax_forecast, lstm_forecast):
+    plt.figure(figsize=(14,8))
+    
+    plt.subplot(311)
+    plt.plot(actual.index, actual.values, label="Actual", color='blue')
+    plt.plot(arima_forecast.index, arima_forecast.values, label="ARIMA Forecast", color='red')
+    plt.title("ARIMA Forecast vs Actual")
     plt.legend()
+
+    plt.subplot(312)
+    plt.plot(actual.index, actual.values, label="Actual", color='blue')
+    plt.plot(sarimax_forecast.index, sarimax_forecast.values, label="SARIMAX Forecast", color='green')
+    plt.title("SARIMAX Forecast vs Actual")
+    plt.legend()
+
+    plt.subplot(313)
+    plt.plot(actual.index, actual.values, label="Actual", color='blue')
+    plt.plot(lstm_forecast.index, lstm_forecast, label="LSTM Forecast", color='purple')
+    plt.title("LSTM Forecast vs Actual")
+    plt.legend()
+
+    plt.tight_layout()
     plt.show()

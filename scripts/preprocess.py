@@ -2,6 +2,7 @@ import pandas as pd
 from statsmodels.tsa.stattools import adfuller
 import logging
 import numpy as np
+import yfinance as yf
 from sklearn.preprocessing import StandardScaler
 
 logging.basicConfig(level=logging.INFO, filename='preprocess.log', filemode='w')
@@ -32,46 +33,63 @@ def check_stationarity(data):
 #         data[ticker] = df
 #     return data
 
-def load_data(file_path):
-    # Load the CSV file without interpreting any row as header to see if extra rows are added
-    df = pd.read_csv(file_path, header=None)
-    
-    # Manually set the header by assigning the actual column names
-    df.columns = ['Date', 'Price', 'Adj Close', 'Close', 'High', 'Low', 'Open', 'Volume']
-    
-    # Drop any unnecessary rows, for example, if 'Ticker' was added as a row in the CSV
-    df = df.dropna(subset=['Date'])  # Drops rows where 'Date' is NaT (if any rows have NaT as Date)
-    
-    # Set the 'Date' column as a DateTime index and ensure the format is correct
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-    df = df.set_index('Date')
-
-    # Drop any rows where the 'Date' could not be parsed correctly
-    df = df.dropna(subset=['Price', 'Adj Close', 'Close', 'High', 'Low', 'Open', 'Volume'])
-
-    return df
-
-def preprocess_data(data):
+def load_data():
     """
-    Basic preprocessing to compute log returns and handle missing values.
+    Load data for each ticker from separate CSV files and return individual DataFrames.
+    Convert columns to appropriate data types after loading.
     """
-    processed_data = {}
-    for ticker, df in data.items():
-        df['Log Return'] = df['Adj Close'].pct_change().apply(lambda x: np.log(1 + x))
-        df['20-Day Volatility'] = df['Log Return'].rolling(window=20).std()  # 20-day rolling volatility
-        df['50-Day Volatility'] = df['Log Return'].rolling(window=50).std()  # 50-day rolling volatility
-        df['Bollinger Upper'] = df['Adj Close'].rolling(window=20).mean() + 2 * df['20-Day Volatility']
-        df['Bollinger Lower'] = df['Adj Close'].rolling(window=20).mean() - 2 * df['20-Day Volatility']
-        df['ATR'] = df['High'].rolling(window=14).max() - df['Low'].rolling(window=14).min()
-        processed_data[ticker] = df.dropna()  # Drop any NaNs resulting from rolling calculations
-    return processed_data
+    # Load each CSV file into separate DataFrames, while ensuring 'Date' is parsed as a datetime index
+    tsla = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\TSLA_data.csv", parse_dates=['Date'], index_col='Date')
+    bnd = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\BND_data.csv", parse_dates=['Date'], index_col='Date')
+    spy = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\SPY_data.csv", parse_dates=['Date'], index_col='Date')
 
-def compute_volatility_index(data):
+    # Reset index if needed (to remove the 'Ticker' row)
+    tsla.reset_index(drop=False, inplace=True)
+    bnd.reset_index(drop=False, inplace=True)
+    spy.reset_index(drop=False, inplace=True)
+
+    # Ensure the columns are in the correct format (convert non-numeric values to NaN)
+    for df in [tsla, bnd, spy]:
+        # Convert relevant columns to numeric, forcing non-convertible values to NaN
+        df['Adj Close'] = pd.to_numeric(df['Adj Close'], errors='coerce')
+        df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
+        df['High'] = pd.to_numeric(df['High'], errors='coerce')
+        df['Low'] = pd.to_numeric(df['Low'], errors='coerce')
+        df['Open'] = pd.to_numeric(df['Open'], errors='coerce')
+        df['Volume'] = pd.to_numeric(df['Volume'], errors='coerce')
+
+    # Ensure 'Date' is the correct datetime type
+    tsla['Date'] = pd.to_datetime(tsla['Date'], errors='coerce')
+    bnd['Date'] = pd.to_datetime(bnd['Date'], errors='coerce')
+    spy['Date'] = pd.to_datetime(spy['Date'], errors='coerce')
+
+    # Set 'Date' as the index for all DataFrames
+    tsla.set_index('Date', inplace=True)
+    bnd.set_index('Date', inplace=True)
+    spy.set_index('Date', inplace=True)
+
+    return tsla, bnd, spy
+
+def preprocess_data(df):
+    """
+    Add volatility-related features to a single DataFrame.
+    """
+    df['Log Return'] = df['Adj Close'].pct_change().apply(lambda x: np.log(1 + x))
+    df['20-Day Volatility'] = df['Log Return'].rolling(window=20).std()
+    df['50-Day Volatility'] = df['Log Return'].rolling(window=50).std()
+    df['Bollinger Upper'] = df['Adj Close'].rolling(window=20).mean() + 2 * df['20-Day Volatility']
+    df['Bollinger Lower'] = df['Adj Close'].rolling(window=20).mean() - 2 * df['20-Day Volatility']
+    df['ATR'] = df['High'].rolling(window=14).max() - df['Low'].rolling(window=14).min()
+    return df.dropna()
+
+def compute_volatility_index(tsla, bnd, spy):
     """
     Compute a combined volatility index from individual asset volatilities.
     """
     vol_index = pd.DataFrame({
-        ticker: df['20-Day Volatility'] for ticker, df in data.items()
+        'TSLA': tsla['20-Day Volatility'],
+        'BND': bnd['20-Day Volatility'],
+        'SPY': spy['20-Day Volatility']
     }).mean(axis=1)
     return vol_index
 
