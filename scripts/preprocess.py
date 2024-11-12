@@ -20,16 +20,26 @@ def check_stationarity(data):
         }
         logging.info(f"{name} Stationarity Check: {results[name]}")
     return results
-def load_data_from_csv():
+# def load_data_from_csv():
+#     """
+#     Load data from pre-saved CSV files for each ticker.
+#     """
+#     tickers = ['TSLA', 'BND', 'SPY']
+#     data = {}
+#     for ticker in tickers:
+#         df = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\{}_data.csv".format(ticker),
+#                          parse_dates=['Date'], index_col='Date')
+#         data[ticker] = df
+#     return data
+
+def load_data():
     """
-    Load data from pre-saved CSV files for each ticker.
+    Load data for each ticker from separate CSV files and return individual DataFrames.
     """
-    tickers = ['TSLA', 'BND', 'SPY']
-    data = {}
-    for ticker in tickers:
-        df = pd.read_csv(f"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\{ticker}_data.csv", parse_dates=['Date'], index_col='Date')
-        data[ticker] = df
-    return data
+    tsla = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\TSLA_data.csv", parse_dates=['Date'], index_col='Date')
+    bnd = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\BND_data.csv", parse_dates=['Date'], index_col='Date')
+    spy = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\SPY_data.csv", parse_dates=['Date'], index_col='Date')
+    return tsla, bnd, spy
 
 def preprocess_data(data):
     """
