@@ -32,14 +32,24 @@ def check_stationarity(data):
 #         data[ticker] = df
 #     return data
 
-def load_data():
-    """
-    Load data for each ticker from separate CSV files and return individual DataFrames.
-    """
-    tsla = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\TSLA_data.csv", parse_dates=['Date'], index_col='Date')
-    bnd = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\BND_data.csv", parse_dates=['Date'], index_col='Date')
-    spy = pd.read_csv(r"C:\Users\Blen\OneDrive\Desktop\10Academy\PortfolioManagement\data\SPY_data.csv", parse_dates=['Date'], index_col='Date')
-    return tsla, bnd, spy
+def load_data(file_path):
+    # Load the CSV file without interpreting any row as header to see if extra rows are added
+    df = pd.read_csv(file_path, header=None)
+    
+    # Manually set the header by assigning the actual column names
+    df.columns = ['Date', 'Price', 'Adj Close', 'Close', 'High', 'Low', 'Open', 'Volume']
+    
+    # Drop any unnecessary rows, for example, if 'Ticker' was added as a row in the CSV
+    df = df.dropna(subset=['Date'])  # Drops rows where 'Date' is NaT (if any rows have NaT as Date)
+    
+    # Set the 'Date' column as a DateTime index and ensure the format is correct
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    df = df.set_index('Date')
+
+    # Drop any rows where the 'Date' could not be parsed correctly
+    df = df.dropna(subset=['Price', 'Adj Close', 'Close', 'High', 'Low', 'Open', 'Volume'])
+
+    return df
 
 def preprocess_data(data):
     """
